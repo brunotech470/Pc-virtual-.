@@ -1,0 +1,64 @@
+
+name: NEXUS CI 🚀
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: 🔍 Verificar projeto
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 🖥️ Informações do sistema
+        run: |
+          echo "================================"
+          echo "🚀 NEXUS CI"
+          echo "================================"
+          echo "Projeto: $GITHUB_REPOSITORY"
+          echo "Branch: $GITHUB_REF_NAME"
+          echo "Commit: $GITHUB_SHA"
+          echo "Sistema: $(uname -a)"
+
+      - name: 📂 Verificar arquivos
+        run: |
+          echo "Arquivos do projeto:"
+          find . -maxdepth 2 -type f \
+            -not -path './.git/*' | head -100
+
+      - name: ✅ Verificar se o projeto existe
+        run: |
+          if [ -z "$(ls -A)" ]; then
+            echo "❌ Projeto vazio!"
+            exit 1
+          fi
+
+          echo "✅ Projeto encontrado!"
+
+      - name: 🧹 Verificar erros de espaço
+        run: |
+          git diff --check
+          echo "✅ Verificação concluída!"
+
+      - name: 📊 Resumo da execução
+        if: always()
+        run: |
+          echo "================================"
+          echo "Status: ${{ job.status }}"
+          echo "================================"
+          
